@@ -110,6 +110,7 @@
   }
   
   .progress {
+    margin-right: 10px;
     width: 100%;
     -webkit-appearance: none;
     height: 6px;
@@ -137,7 +138,17 @@
     background-color: var(--primary-color); /* Màu của phần phủ */
     width: var(--progress-width, 0%); /* Sử dụng biến --progress-width để cập nhật chiều dài */
     transition: width 0.1s linear; /* Hiệu ứng chuyển động */ 
-    max-width: 448px;
+  }
+
+
+  .audio__progress{
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+  }
+
+  #timer{
+    font-size: 13px;
   }
 
   

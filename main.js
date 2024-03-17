@@ -28,6 +28,7 @@ const nextBtn = $('.btn-next');
 const prevBtn = $('.btn-prev');
 const randomBtn = $('.btn-random');
 const repeatBtn = $('.btn-repeat');
+const timer = $('#timer');
 
 const app = {
     currentIndex: 0,
@@ -81,7 +82,7 @@ const app = {
     render: function(){
         const htmls = this.songs.map((song, index) =>{
             return `
-            <div class="song ${index === this.currentIndex ? 'active' : '' }">
+            <div class="song ${index === this.currentIndex ? 'active' : '' }" data-index= "${index}">
                 <div class="thumb" style="background-image: url('${song.image}')"></div>
                 <div class="body">
                     <h3 class="title">${song.name}</h3>
@@ -148,18 +149,39 @@ const app = {
             cdThumbAnimate.pause();
         }
 
+        
+        // audio.ontimeupdate = function(){
+        //     if(audio.duration){
+        //         const progressPercent = Math.floor(audio.currentTime / audio.duration * 100);
+        //         progress.value = progressPercent;
+        //         progress.style.setProperty('--progress-duration', progressPercent + '%'); // Sử dụng biến --progress-width để cập nhật chiều dài
+        //         _this.timeDuration();
+        //     }
+        // }
+
+        // biến dùng chung cho audio.ontimeupdate vs progress.onchange
+        const widthProgress = progress.offsetWidth;
+        progress.value;
+        progress.min = 0; // set giá trị min cho input là 0
+        progress.max = widthProgress; // set giá trị max cho input là độ dài thực tế của element
+        let unit; // đơn vị seconds/pixel (mỗi bài hát sẽ có một giá trị unit khác nhau)
+
         //Khi tiến độ bài hát thay đổi
-        audio.ontimeupdate = function(){
-            if(audio.duration){
-                const progressPercent = Math.floor(audio.currentTime / audio.duration * 100);
+        audio.ontimeupdate = function () {
+            const audioDuration = audio.duration;
+            if (audioDuration > 0) {
+                unit = audio.duration / widthProgress; // thực hiện gán giá trị cho unit khi audio chạy
+                const progressPercent = Math.floor(audio.currentTime / unit);
                 progress.value = progressPercent;
-                progress.style.setProperty('--progress-width', progressPercent + '%'); // Sử dụng biến --progress-width để cập nhật chiều dài
+                progress.style.setProperty("--progress-width", progressPercent + "px"); // Sử dụng biến --progress-width để cập nhật chiều dài
+                _this.timeDuration();
             }
-        }
+        };
 
         //Khi tua bài hát
         progress.onchange = function(e){
-            const seekTime = e.target.value * audio.duration  / 100;
+            // const seekTime = e.target.value * audio.duration  / 100;
+            const seekTime = e.target.value * unit;
             audio.currentTime = seekTime;
         }
 
@@ -211,7 +233,17 @@ const app = {
             repeatBtn.classList.toggle('active', _this.isRepeat);
         }
 
-        
+        //Lắng nghe hành vi click vào playlist
+        playlist.onclick = function(e){
+        // Xử lý khi click vào song
+            const songNode = e.target.closest('.song:not(.active)');
+            if(songNode){
+                _this.currentIndex = Number(songNode.dataset.index);
+                _this.loadCurrentSong();
+                _this.render();
+                audio.play();
+          }
+      }
         
     },
     scrollToActiveSong:function(){
@@ -266,6 +298,14 @@ const app = {
         this.currentIndex = newIndex;
         this.loadCurrentSong();
     },
+    timeDuration: function(){
+        const currentSec = Math.floor(audio.currentTime);
+        const minutes = Math.floor(currentSec / 60);
+        const seconds = currentSec - minutes * 60;
+        const formattedTime = minutes + ':' + (seconds < 10 ? '0' : '') + seconds;
+        timer.textContent = formattedTime;
+    }
+    ,
     start: function(){
         //Định nghĩa các thuộc tính cho Object
         this.defineProperties();

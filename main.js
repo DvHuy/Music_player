@@ -145,20 +145,26 @@ const app = {
             cdThumbAnimate.pause();
         };
 
+        // biến dùng chung cho audio.ontimeupdate vs progress.onchange
+        const widthProgress = progress.offsetWidth;
+        progress.value;
+        progress.min = 0; // set giá trị min cho input là 0
+        progress.max = widthProgress; // set giá trị max cho input là độ dài thực tế của element
+        let unit; // đơn vị seconds/pixel (mỗi bài hát sẽ có một giá trị unit khác nhau)
+
         //Khi tiến độ bài hát thay đổi
         audio.ontimeupdate = function () {
-            const audioDuration = audio.duration;
-            if (audioDuration > 0) {
-                const widthProgress = progress.offsetWidth;
-                const unit = audioDuration / widthProgress;
-                const progressPercent = audio.currentTime / unit;
+            if (audio.duration > 0) {
+                unit = audio.duration / widthProgress; // thực hiện gán giá trị cho unit khi audio chạy
+                const progressPercent = Math.floor(audio.currentTime / unit);
+                progress.value = progressPercent;
                 progress.style.setProperty("--progress-width", progressPercent + "px"); // Sử dụng biến --progress-width để cập nhật chiều dài
             }
         };
 
         //Khi tua bài hát
         progress.onchange = function (e) {
-            const seekTime = (e.target.value * audio.duration) / 100;
+            const seekTime = e.target.value * unit;
             audio.currentTime = seekTime;
         };
 
